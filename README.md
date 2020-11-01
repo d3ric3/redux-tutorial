@@ -1,70 +1,123 @@
-# Getting Started with Create React App
+# `Understand REDUX`
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### `What is REDUX?`
+REDUX is a global state management which comprises of `store`, `action` and `reducer`
 
-## Available Scripts
 
-In the project directory, you can run:
+### `1. Store`
+The store is the object that is responsible to hold the application state.
 
-### `yarn start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### `2. Action`
+Action is an object that is sent/dispatch to store. The object must have `type` property and optionally payload property. `Action creator` is a function that is responsible to create the Action object.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### `3. Reducer`
+Reducer is responsible to determine the new state based on the action that is sent to reducer.
 
-### `yarn test`
+### `Code Sample`
+```javascript
+/** src/redux/reducers/counter.js **/
+/** setting up reducers **/
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+// actions
+const INCREMENT = "counter/increment";
+const DECREMENT = "counter/decrement";
 
-### `yarn build`
+// action creators
+export const createIncrementAction = (num = 1) => {
+  return {
+    type: INCREMENT,
+    payload: num,
+  };
+};
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+export const createDecrementAction = (num = 1) => {
+  return {
+    type: DECREMENT,
+    payload: num,
+  };
+};
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+// counter reducer
+const counterReducer = (state = 0, action) => {
+  switch (action.type) {
+    case INCREMENT:
+      return state + action.payload;
+    case DECREMENT:
+      return state - action.payload;
+    default:
+      return state;
+  }
+};
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```javascript
+/** src/redux/store/index.js  **/
+/** setting up redux store **/
 
-### `yarn eject`
+import { combineReducers, createStore } from "redux";
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+import * as reducers from "../reducers";
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+const allReducers = combineReducers(reducers);
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+const store = createStore(
+  allReducers,
+  // settings for redux dev tool
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+);
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```javascript
+/** src/index.js **/
+/** setting redux to work with react project **/
 
-## Learn More
+import { Provider } from "react-redux";
+import store from "./store";
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+ReactDOM.render(
+   <!-- Wrap App with Provider and store property -->
+    <Provider store={store}>
+      <App />
+    </Provider>,
+  document.getElementById("root")
+);
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```javascript
+/** src/components/Counter.js **/
+/** using redux in react Counter component **/
 
-### Code Splitting
+function Counter() {
+  // useSelector : to get the state
+  const count = useSelector((state) => state.counter);
+  // useDispatch : to dispatch action to store
+  const dispatch = useDispatch();
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+  const incrementBy = (num) => {
+    return (e) => {
+      e.preventDefault();
+      dispatch(createIncrementAction(num));
+    };
+  };
 
-### Analyzing the Bundle Size
+  const decrementBy = (num) => {
+    return (e) => {
+      e.preventDefault();
+      dispatch(createDecrementAction(num));
+    };
+  };
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+  return (
+    <div>
+      <h3>Count: {count}</h3>
 
-### Making a Progressive Web App
+      <button onClick={incrementBy(1)}>+</button>
+      <button onClick={decrementBy(1)}>-</button>
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+      <button onClick={incrementBy(5)}>+5</button>
+      <button onClick={decrementBy(5)}>-5</button>
+    </div>
+  );
+}
+```
